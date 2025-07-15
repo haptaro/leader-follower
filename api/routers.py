@@ -1,16 +1,21 @@
-import random
+import random, logging
+
+log = logging.getLogger("db.router")
 
 REPLICAS = ["replica1", "replica2", "replica3"]
 
 class LeaderFollowerRouter:
     def db_for_read(self, model, **hints):
-        return random.choice(REPLICAS)
+        alias = random.choice(REPLICAS)
+        log.info(">>> READ  → %s", alias)
+        return alias
 
     def db_for_write(self, model, **hints):
+        log.info(">>> WRITE → default")
         return "default"
 
-    def allow_relation(self, obj1, obj2, **hints):
+    def allow_relation(self, *args, **kwargs):
         return True
 
-    def allow_migrate(self, db, app_label, model_name=None, **hints):
+    def allow_migrate(self, db, *args, **kwargs):
         return db == "default"

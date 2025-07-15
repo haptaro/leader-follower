@@ -97,6 +97,14 @@ DATABASES = {
 
 DATABASE_ROUTERS = ["api.routers.LeaderFollowerRouter"]
 
+LOGGING = {
+    "version": 1,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "loggers": {
+        "db.router": {"handlers": ["console"], "level": "INFO"},
+    },
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
