@@ -1,10 +1,9 @@
 import strawberry
 import strawberry_django
-from django.contrib.auth.models import User
 from api.utils import IsAuthenticatedToken
-
 from api.types import UserType, NoteType
-from api.services import find_my_notes
+from api import services
+
 
 @strawberry.type
 class Query:
@@ -13,10 +12,7 @@ class Query:
     @strawberry.field(permission_classes=[IsAuthenticatedToken])
     def me(self, info) -> UserType | None:
         user = info.context.request.user
-        if user.is_authenticated:
-            return User.objects.get(pk=user.pk)
-        else:
-            return None
+        return services.get_authenticated_user(user)
     
     # Get all notes for the authenticated user
     @strawberry_django.field(permission_classes=[IsAuthenticatedToken])
@@ -25,5 +21,5 @@ class Query:
         if not user.is_authenticated:
             raise Exception("Authentication required")
         
-        return find_my_notes(user_id=user.pk)
+        return services.find_my_notes(user_id=user.pk)
 
