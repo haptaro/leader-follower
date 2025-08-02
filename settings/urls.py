@@ -16,8 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from api.views import APIGraphQLView
+from api.schema import schema
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/", include("api.urls")),
+    path("graphql/", APIGraphQLView.as_view(schema=schema)),
 ]

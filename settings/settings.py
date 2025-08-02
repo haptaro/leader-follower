@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     # Third-party apps
     'rest_framework',
     'django_celery_results',
+    'strawberry_django',
 
     # Local apps
     'api',
