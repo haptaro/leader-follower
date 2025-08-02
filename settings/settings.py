@@ -88,16 +88,26 @@ WSGI_APPLICATION = 'settings.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    # Leader database (write)
-    "default":  env.db("DATABASE_URL", default=None),
-    # Follower databases (read)
-    "replica1": env.db("HEROKU_POSTGRESQL_REPLICA1_URL", default=None),
-    "replica2": env.db("HEROKU_POSTGRESQL_REPLICA2_URL", default=None),
-    "replica3": env.db("HEROKU_POSTGRESQL_REPLICA3_URL", default=None),
-}
 
-DATABASE_ROUTERS = ["api.routers.LeaderFollowerRouter"]
+if env("ENV") == "production":
+    DATABASES = {
+        # Leader database (write)
+        "default":  env.db("DATABASE_URL", default=None),
+
+        # Follower databases (read)
+        "replica1": env.db("HEROKU_POSTGRESQL_REPLICA1_URL", default=None),
+        "replica2": env.db("HEROKU_POSTGRESQL_REPLICA2_URL", default=None),
+        "replica3": env.db("HEROKU_POSTGRESQL_REPLICA3_URL", default=None),
+    }
+else:
+    DATABASES = {
+        "default": env.db("DEV_DATABASE_URL", default="postgres://user:pass@localhost:5432/mydb")
+    }
+
+if env("ENV") == "production":
+    DATABASE_ROUTERS = ["api.routers.LeaderFollowerRouter"]
+else:
+    DATABASE_ROUTERS = []
 
 LOGGING = {
     "version": 1,
