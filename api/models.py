@@ -11,3 +11,21 @@ class Note(models.Model):
 
     def __str__(self):
         return self.message[:30]
+
+
+class UserMetadata(models.Model):
+    user = models.OneToOneField('auth.User', on_delete=models.CASCADE)
+    access_token = models.CharField(max_length=255, blank=True, db_index=True)
+
+    def __str__(self):
+        return f"{self.user.username}'s metadata"
+
+    def generate_token(self):
+        import secrets
+        return secrets.token_urlsafe(32)
+
+    def get_or_create_access_token(self):
+        if not self.access_token:
+            self.access_token = self.generate_token()
+            self.save()
+        return self.access_token
