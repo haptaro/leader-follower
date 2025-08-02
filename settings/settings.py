@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     # Third-party apps
     'rest_framework',
     'django_celery_results',
+    'graphene_django',
 
     # Local apps
     'api',
@@ -164,3 +165,8 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Graphene settings
+GRAPHENE = {
+    "SCHEMA": "settings.schema.schema"
+}
