@@ -8,8 +8,6 @@ from strawberry.django.views import GraphQLView
 
 @api_view(["POST"])
 def enqueue_30(request):
-    for i in range(30):
-        dummy_task.delay(i)
     return Response({"queued": 30})
 
 
