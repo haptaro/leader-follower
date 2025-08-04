@@ -29,3 +29,24 @@ class UserMetadata(models.Model):
             self.access_token = self.generate_token()
             self.save()
         return self.access_token
+
+
+class ChatRoom(models.Model):
+    name = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class ChatRoomMember(models.Model):
+    chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='members')
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='chat_rooms')
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('chat_room', 'user')
+
+
+class Message(models.Model):
+    chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='messages')
+    user = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
