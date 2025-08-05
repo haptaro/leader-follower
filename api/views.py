@@ -17,4 +17,5 @@ class NoteEndpoint(ListCreateAPIView):
 
 
 class APIGraphQLView(GraphQLView):
-    pass
+    def get_context(self, request, response=None):
+        return {"request": request, "response": response}
