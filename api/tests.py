@@ -1,9 +1,13 @@
 import pytest
+import json
 from unittest.mock import Mock, patch
 from django.contrib.auth.models import User, AnonymousUser
-from django.test import TestCase
+from django.test import TestCase, Client
+from django.urls import reverse
+from django.contrib.auth import login
 from api.models import Note, UserMetadata
 from api import services
+from api.factories import UserFactory, UserMetadataFactory
 
 
 @pytest.mark.django_db
@@ -250,3 +254,130 @@ class TestServiceIntegration(TestCase):
         # Verify token was cleared
         user_metadata = UserMetadata.objects.get(user=user)
         self.assertEqual(user_metadata.access_token, "")
+
+
+@pytest.mark.django_db
+class TestGraphQLMeEndpoint(TestCase):
+    """Test cases for the GraphQL 'me' endpoint."""
+
+    def setUp(self):
+        """Set up test data."""
+        self.client = Client()
+        # Create user with factory
+        self.user = UserFactory(username="testuser", password="testpass123")
+        # Create user metadata with access token
+        self.user_metadata = UserMetadataFactory(user=self.user)
+        self.access_token = self.user_metadata.access_token
+
+    def test_me_endpoint_authenticated_user(self):
+        """Test 'me' endpoint returns authenticated user data."""
+        query = """
+        query MyQuery {
+            me {
+                email
+                id
+                username
+            }
+        }
+        """
+        
+        response = self.client.post(
+            "/graphql/",
+            data={"query": query},
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {self.access_token}"
+        )
+        
+        self.assertEqual(response.status_code, 200)
+        
+        response_data = json.loads(response.content)
+        
+        # Check that there are no errors
+        self.assertNotIn("errors", response_data)
+        
+        # Check the response data
+        user_data = response_data["data"]["me"]
+        self.assertEqual(user_data["id"], str(self.user.id))
+        self.assertEqual(user_data["username"], self.user.username)
+        self.assertEqual(user_data["email"], self.user.email)
+
+    def test_me_endpoint_unauthenticated_user(self):
+        """Test 'me' endpoint returns error for unauthenticated user."""
+        query = """
+        query MyQuery {
+            me {
+                email
+                id
+                username
+            }
+        }
+        """
+        
+        # Make request without authorization header
+        response = self.client.post(
+            "/graphql/",
+            data={"query": query},
+            content_type="application/json"
+        )
+        
+        self.assertEqual(response.status_code, 200)
+        
+        response_data = json.loads(response.content)
+        
+        # Check that there are errors
+        self.assertIn("errors", response_data)
+        self.assertIn("Not authenticated", str(response_data["errors"]))
+
+    def test_me_endpoint_invalid_token(self):
+        """Test 'me' endpoint returns error for invalid token."""
+        query = """
+        query MyQuery {
+            me {
+                email
+                id
+                username
+            }
+        }
+        """
+        
+        response = self.client.post(
+            "/graphql/",
+            data={"query": query},
+            content_type="application/json",
+            HTTP_AUTHORIZATION="Bearer invalid_token_123"
+        )
+        
+        self.assertEqual(response.status_code, 200)
+        
+        response_data = json.loads(response.content)
+        
+        # Check that there are errors
+        self.assertIn("errors", response_data)
+        self.assertIn("Not authenticated", str(response_data["errors"]))
+
+    def test_me_endpoint_malformed_auth_header(self):
+        """Test 'me' endpoint returns error for malformed auth header."""
+        query = """
+        query MyQuery {
+            me {
+                email
+                id
+                username
+            }
+        }
+        """
+        
+        response = self.client.post(
+            "/graphql/",
+            data={"query": query},
+            content_type="application/json",
+            HTTP_AUTHORIZATION="InvalidHeader"
+        )
+        
+        self.assertEqual(response.status_code, 200)
+        
+        response_data = json.loads(response.content)
+        
+        # Check that there are errors
+        self.assertIn("errors", response_data)
+        self.assertIn("Not authenticated", str(response_data["errors"]))

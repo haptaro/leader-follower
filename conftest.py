@@ -17,10 +17,13 @@ def pytest_configure():
             }
         },
         INSTALLED_APPS=[
+            'django.contrib.admin',
             'django.contrib.auth',
             'django.contrib.contenttypes',
+            'django.contrib.sessions',
             'api',
         ],
+        ROOT_URLCONF='settings.urls',
         SECRET_KEY='test-secret-key',
         USE_TZ=True,
     )
