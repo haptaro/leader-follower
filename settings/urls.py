@@ -19,9 +19,10 @@ from django.urls import path, include
 from api.views import APIGraphQLView
 from api.schema import schema
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/", include("api.urls")),
-    path("graphql/", csrf_exempt(APIGraphQLView.as_view(schema=schema))),
+    path("graphql/", csrf_exempt(APIGraphQLView.as_view(schema=schema, graphiql=settings.GRAPHISQL_ENABLED))),
 ]
